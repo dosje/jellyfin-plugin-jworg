@@ -1,4 +1,5 @@
 using Jellyfin.Plugin.JwOrg.Services;
+using Xunit;
 
 namespace Jellyfin.Plugin.JwOrg.Tests;
 

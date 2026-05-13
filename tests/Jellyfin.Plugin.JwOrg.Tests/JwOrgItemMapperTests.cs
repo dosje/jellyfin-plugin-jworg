@@ -1,6 +1,7 @@
 using Jellyfin.Plugin.JwOrg.Configuration;
 using Jellyfin.Plugin.JwOrg.Services;
 using MediaBrowser.Controller.Channels;
+using Xunit;
 
 namespace Jellyfin.Plugin.JwOrg.Tests;
 

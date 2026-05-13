@@ -34,7 +34,7 @@ public sealed class JwOrgClient : IJwOrgClient
         var normalizedLanguage = NormalizeLanguageCode(languageCode);
         var cacheKey = $"top:{normalizedLanguage}";
 
-        return _cache.GetOrCreateAsync(cacheKey, CacheDuration(configuration), async ct =>
+        return _cache.GetOrCreateAsync<IReadOnlyList<JwOrgCategory>>(cacheKey, CacheDuration(configuration), async ct =>
         {
             using var document = await GetJsonAsync($"{ApiBase}/categories/{Uri.EscapeDataString(normalizedLanguage)}?clientType=www", ct).ConfigureAwait(false);
             if (!document.RootElement.TryGetProperty("categories", out var categories) || categories.ValueKind != JsonValueKind.Array)

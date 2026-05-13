@@ -2,6 +2,7 @@ using System.Net;
 using Jellyfin.Plugin.JwOrg.Configuration;
 using Jellyfin.Plugin.JwOrg.Services;
 using Microsoft.Extensions.Logging.Abstractions;
+using Xunit;
 
 namespace Jellyfin.Plugin.JwOrg.Tests;
 

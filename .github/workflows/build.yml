@@ -41,7 +41,7 @@ jobs:
             "name": "JW.ORG",
             "description": "Browse and stream public JW.ORG videos as a Jellyfin Channel.",
             "overview": "Adds a JW.ORG Channel to Jellyfin and streams public JW CDN MP4 URLs directly.",
-            "owner": "<owner>",
+            "owner": "dosje",
             "targetAbi": "10.11.0.0",
             "timestamp": "2026-05-14T00:00:00Z",
             "version": "0.1.0.0"
