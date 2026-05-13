@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Jellyfin.Plugin.JwOrg.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.JwOrg.Services;
 
@@ -11,16 +12,19 @@ public sealed class JwOrgClient : IJwOrgClient
     private const string ApiBase = "https://b.jw-cdn.org/apis/mediator/v1";
     private readonly HttpClient _httpClient;
     private readonly IJwOrgCache _cache;
+    private readonly ILogger<JwOrgClient> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="JwOrgClient"/> class.
     /// </summary>
     /// <param name="httpClient">HTTP client.</param>
     /// <param name="cache">API response cache.</param>
-    public JwOrgClient(HttpClient httpClient, IJwOrgCache cache)
+    /// <param name="logger">Logger.</param>
+    public JwOrgClient(HttpClient httpClient, IJwOrgCache cache, ILogger<JwOrgClient> logger)
     {
         _httpClient = httpClient;
         _cache = cache;
+        _logger = logger;
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Jellyfin.Plugin.JwOrg/0.1");
     }
 
@@ -98,28 +102,32 @@ public sealed class JwOrgClient : IJwOrgClient
 
     private async Task<IReadOnlyList<JwOrgMediaItem>> HydrateMediaAsync(string languageCode, IReadOnlyList<JwOrgMediaItem> media, PluginConfiguration configuration, CancellationToken cancellationToken)
     {
-        var results = new List<JwOrgMediaItem>(media.Count);
-        foreach (var item in media)
+        var tasks = media.Select(async item =>
         {
             var hydrated = item.Files.Count == 0
                 ? await GetMediaItemAsync(languageCode, item.Key, configuration, cancellationToken).ConfigureAwait(false)
                 : item;
+            return hydrated is not null && hydrated.Files.Count > 0 ? hydrated : null;
+        });
 
-            if (hydrated is not null && hydrated.Files.Count > 0)
-            {
-                results.Add(hydrated);
-            }
-        }
-
-        return results;
+        var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+        return results.OfType<JwOrgMediaItem>().ToArray();
     }
 
     private async Task<JsonDocument> GetJsonAsync(string url, CancellationToken cancellationToken)
     {
-        using var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken).ConfigureAwait(false)
-            ?? JsonDocument.Parse("{}");
+        try
+        {
+            using var response = await _httpClient.GetAsync(url, cancellationToken).ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<JsonDocument>(cancellationToken).ConfigureAwait(false)
+                ?? JsonDocument.Parse("{}");
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "JW.ORG API request failed for {Url}", url);
+            throw;
+        }
     }
 
     private static JwOrgCategory ParseCategory(string languageCode, JsonElement element, bool includeChildren)

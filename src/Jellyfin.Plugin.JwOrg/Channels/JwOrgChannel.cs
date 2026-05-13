@@ -3,6 +3,7 @@ using Jellyfin.Plugin.JwOrg.Services;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Drawing;
+using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.JwOrg.Channels;
 
@@ -13,16 +14,19 @@ public sealed class JwOrgChannel : IChannel
 {
     private readonly IJwOrgClient _client;
     private readonly IJwOrgItemMapper _mapper;
+    private readonly ILogger<JwOrgChannel> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="JwOrgChannel"/> class.
     /// </summary>
     /// <param name="client">JW.ORG API client.</param>
     /// <param name="mapper">Channel item mapper.</param>
-    public JwOrgChannel(IJwOrgClient client, IJwOrgItemMapper mapper)
+    /// <param name="logger">Logger.</param>
+    public JwOrgChannel(IJwOrgClient client, IJwOrgItemMapper mapper, ILogger<JwOrgChannel> logger)
     {
         _client = client;
         _mapper = mapper;
+        _logger = logger;
     }
 
     /// <inheritdoc />
@@ -59,7 +63,7 @@ public sealed class JwOrgChannel : IChannel
     /// <inheritdoc />
     public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
     {
-        return Task.FromResult(new DynamicImageResponse());
+        return Task.FromResult(new DynamicImageResponse { HasImage = false });
     }
 
     /// <inheritdoc />
@@ -74,21 +78,34 @@ public sealed class JwOrgChannel : IChannel
         var configuration = Plugin.Instance?.Configuration ?? new PluginConfiguration();
         var folder = JwOrgFolderId.Parse(query.FolderId);
 
-        if (folder.Kind == JwOrgFolderKind.Root)
+        try
         {
-            return _mapper.MapLanguages(configuration.LanguageCodes);
-        }
+            if (folder.Kind == JwOrgFolderKind.Root)
+            {
+                return _mapper.MapLanguages(configuration.LanguageCodes);
+            }
 
-        if (folder.Kind == JwOrgFolderKind.LanguageRoot)
+            if (folder.Kind == JwOrgFolderKind.LanguageRoot)
+            {
+                var topCategories = await _client.GetTopCategoriesAsync(folder.LanguageCode, configuration, cancellationToken).ConfigureAwait(false);
+                if (topCategories.Count == 0)
+                {
+                    _logger.LogWarning("No top categories returned for language {Language}", folder.LanguageCode);
+                }
+
+                return _mapper.MapCategories(topCategories);
+            }
+
+            var category = await _client
+                .GetCategoryAsync(folder.LanguageCode, folder.CategoryKey, configuration, query.StartIndex ?? 0, query.Limit, cancellationToken)
+                .ConfigureAwait(false);
+
+            return _mapper.MapCategory(category, configuration);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            var topCategories = await _client.GetTopCategoriesAsync(folder.LanguageCode, configuration, cancellationToken).ConfigureAwait(false);
-            return _mapper.MapCategories(topCategories);
+            _logger.LogError(ex, "Failed to fetch channel items for folder {FolderId}", query.FolderId);
+            throw;
         }
-
-        var category = await _client
-            .GetCategoryAsync(folder.LanguageCode, folder.CategoryKey, configuration, query.StartIndex ?? 0, query.Limit, cancellationToken)
-            .ConfigureAwait(false);
-
-        return _mapper.MapCategory(category, configuration);
     }
 }

@@ -1,6 +1,7 @@
 using System.Net;
 using Jellyfin.Plugin.JwOrg.Configuration;
 using Jellyfin.Plugin.JwOrg.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Jellyfin.Plugin.JwOrg.Tests;
 
@@ -41,7 +42,7 @@ public sealed class JwOrgClientTests
             """;
         });
 
-        var client = new JwOrgClient(new HttpClient(handler), new JwOrgCache());
+        var client = new JwOrgClient(new HttpClient(handler), new JwOrgCache(), NullLogger<JwOrgClient>.Instance);
 
         var category = await client.GetCategoryAsync("E", "VODStudio", new PluginConfiguration(), 0, 100, CancellationToken.None);
 
