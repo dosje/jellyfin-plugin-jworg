@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JW.ORG</title>
+</head>
+<body>
+<div id="JwOrgConfigPage" data-role="page" class="page type-interior pluginConfigurationPage">
+    <div data-role="content">
+        <div class="content-primary">
+            <form id="JwOrgConfigForm">
+                <div class="verticalSection">
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="LanguageCodes">JW language codes</label>
+                        <input is="emby-input" id="LanguageCodes" name="LanguageCodes" type="text" />
+                        <div class="fieldDescription">Comma-separated JW language codes. Example: E,D,F.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="MaxVideoHeight">Maximum video height</label>
+                        <input is="emby-input" id="MaxVideoHeight" name="MaxVideoHeight" type="number" min="0" step="1" />
+                        <div class="fieldDescription">Leave empty to use the highest available MP4 file.</div>
+                    </div>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="CacheDurationHours">Metadata cache duration, hours</label>
+                        <input is="emby-input" id="CacheDurationHours" name="CacheDurationHours" type="number" min="1" step="1" />
+                    </div>
+                    <button is="emby-button" type="submit" class="raised button-submit block">
+                        <span>Save</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var JwOrgConfig = {
+            pluginUniqueId: 'e6c6a305-c81f-41d4-a7b0-576a248110cb'
+        };
+
+        document.querySelector('#JwOrgConfigPage').addEventListener('pageshow', function () {
+            Dashboard.showLoadingMsg();
+            ApiClient.getPluginConfiguration(JwOrgConfig.pluginUniqueId).then(function (config) {
+                document.querySelector('#LanguageCodes').value = (config.LanguageCodes || ['E']).join(',');
+                document.querySelector('#MaxVideoHeight').value = config.MaxVideoHeight || '';
+                document.querySelector('#CacheDurationHours').value = config.CacheDurationHours || 12;
+                Dashboard.hideLoadingMsg();
+            });
+        });
+
+        document.querySelector('#JwOrgConfigForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            Dashboard.showLoadingMsg();
+
+            ApiClient.getPluginConfiguration(JwOrgConfig.pluginUniqueId).then(function (config) {
+                config.LanguageCodes = document.querySelector('#LanguageCodes').value
+                    .split(',')
+                    .map(function (item) { return item.trim().toUpperCase(); })
+                    .filter(Boolean);
+
+                var maxHeight = document.querySelector('#MaxVideoHeight').value;
+                config.MaxVideoHeight = maxHeight ? parseInt(maxHeight, 10) : null;
+                config.CacheDurationHours = parseInt(document.querySelector('#CacheDurationHours').value || '12', 10);
+
+                ApiClient.updatePluginConfiguration(JwOrgConfig.pluginUniqueId, config).then(function () {
+                    Dashboard.processPluginConfigurationUpdateResult();
+                });
+            });
+
+            return false;
+        });
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,85 @@
+name: Build
+
+on:
+  push:
+    branches: ["main"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        run: dotnet restore Jellyfin.Plugin.JwOrg.sln
+
+      - name: Build
+        run: dotnet build Jellyfin.Plugin.JwOrg.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test Jellyfin.Plugin.JwOrg.sln --configuration Release --no-build
+
+      - name: Publish plugin
+        run: dotnet publish src/Jellyfin.Plugin.JwOrg/Jellyfin.Plugin.JwOrg.csproj --configuration Release --no-build --output artifacts/plugin
+
+      - name: Add plugin metadata
+        run: |
+          cat > artifacts/plugin/meta.json <<'JSON'
+          {
+            "category": "Channels",
+            "guid": "e6c6a305-c81f-41d4-a7b0-576a248110cb",
+            "name": "JW.ORG",
+            "description": "Browse and stream public JW.ORG videos as a Jellyfin Channel.",
+            "overview": "Adds a JW.ORG Channel to Jellyfin and streams public JW CDN MP4 URLs directly.",
+            "owner": "<owner>",
+            "targetAbi": "10.11.0.0",
+            "timestamp": "2026-05-14T00:00:00Z",
+            "version": "0.1.0.0"
+          }
+          JSON
+
+      - name: Package
+        run: |
+          mkdir -p dist
+          cd artifacts/plugin
+          zip -r ../../dist/Jellyfin.Plugin.JwOrg_0.1.0.zip .
+          cd ../..
+          shasum -a 256 dist/Jellyfin.Plugin.JwOrg_0.1.0.zip | tee dist/Jellyfin.Plugin.JwOrg_0.1.0.sha256
+
+      - name: Validate manifest JSON
+        run: python -m json.tool manifest.json > /dev/null
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Jellyfin.Plugin.JwOrg
+          path: dist/*
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Jellyfin.Plugin.JwOrg
+          path: dist
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*

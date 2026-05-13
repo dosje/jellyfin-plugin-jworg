@@ -1,0 +1,12 @@
+name: "JW.ORG"
+guid: "e6c6a305-c81f-41d4-a7b0-576a248110cb"
+version: "0.1.0.0"
+targetAbi: "10.11.0.0"
+framework: "net9.0"
+overview: "Browse and stream public JW.ORG videos as a Jellyfin Channel."
+description: "Adds a JW.ORG Channel to Jellyfin. The plugin browses public JW.ORG video categories and streams selected MP4 files directly from JW CDN URLs without downloading media locally."
+category: "Channels"
+owner: "<owner>"
+artifacts:
+  - "Jellyfin.Plugin.JwOrg.dll"
+changelog: "Initial private testing release."

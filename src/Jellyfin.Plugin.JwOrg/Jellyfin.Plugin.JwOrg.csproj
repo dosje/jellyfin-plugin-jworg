@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Jellyfin.Plugin.JwOrg</AssemblyName>
+    <RootNamespace>Jellyfin.Plugin.JwOrg</RootNamespace>
+    <Version>0.1.0</Version>
+    <Authors>Jellyfin JW.ORG Plugin Contributors</Authors>
+    <Description>Jellyfin channel plugin for browsing and streaming public JW.ORG video media.</Description>
+    <PackageId>Jellyfin.Plugin.JwOrg</PackageId>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Jellyfin.Common" Version="10.11.8" PrivateAssets="all" />
+    <PackageReference Include="Jellyfin.Controller" Version="10.11.8" PrivateAssets="all" />
+    <PackageReference Include="Jellyfin.Model" Version="10.11.8" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration\configPage.html" />
+  </ItemGroup>
+</Project>
