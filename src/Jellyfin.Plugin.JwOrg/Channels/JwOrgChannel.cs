@@ -3,6 +3,7 @@ using Jellyfin.Plugin.JwOrg.Services;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Channels;
+using MediaBrowser.Model.Drawing;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -64,13 +65,22 @@ public sealed class JwOrgChannel : IChannel
     /// <inheritdoc />
     public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
     {
-        return Task.FromResult(new DynamicImageResponse { HasImage = false });
+        var assembly = GetType().Assembly;
+        var resourceName = $"{assembly.GetName().Name}.Images.logo.png";
+        var stream = assembly.GetManifestResourceStream(resourceName);
+        if (stream is null) return Task.FromResult(new DynamicImageResponse { HasImage = false });
+        return Task.FromResult(new DynamicImageResponse
+        {
+            HasImage = true,
+            Format = ImageFormat.Png,
+            Stream = stream
+        });
     }
 
     /// <inheritdoc />
     public IEnumerable<ImageType> GetSupportedChannelImages()
     {
-        return [];
+        return [ImageType.Primary];
     }
 
     /// <inheritdoc />
