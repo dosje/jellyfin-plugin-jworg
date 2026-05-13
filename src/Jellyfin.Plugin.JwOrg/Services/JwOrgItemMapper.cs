@@ -98,7 +98,7 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
             Path = selectedFile.Url,
             Protocol = MediaProtocol.Http,
             Type = MediaSourceType.Default,
-            Container = "mp4",
+            Container = DeriveContainer(selectedFile),
             IsRemote = true,
             SupportsDirectPlay = true,
             SupportsDirectStream = true,
@@ -122,7 +122,7 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
             RunTimeTicks = durationTicks,
             PremiereDate = mediaItem.PublishedAt?.UtcDateTime,
             DateCreated = mediaItem.PublishedAt?.UtcDateTime,
-            DateModified = DateTime.UtcNow,
+            DateModified = mediaItem.PublishedAt?.UtcDateTime ?? DateTime.UtcNow,
             HomePageUrl = $"https://www.jw.org/finder?wtlocale={Uri.EscapeDataString(mediaItem.LanguageCode)}&lank={Uri.EscapeDataString(mediaItem.Key)}",
             ProviderIds = new Dictionary<string, string>
             {
@@ -169,5 +169,30 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
             .ToArray();
 
         return normalized.Length == 0 ? ["E"] : normalized;
+    }
+
+    private static string DeriveContainer(JwOrgMediaFile file)
+    {
+        if (!string.IsNullOrEmpty(file.Format))
+        {
+            var fmt = file.Format.ToLowerInvariant();
+            if (fmt.Contains("mp4", StringComparison.Ordinal))
+            {
+                return "mp4";
+            }
+
+            if (fmt.Contains("webm", StringComparison.Ordinal))
+            {
+                return "webm";
+            }
+
+            if (fmt.Contains("ts", StringComparison.Ordinal))
+            {
+                return "ts";
+            }
+        }
+
+        var ext = Path.GetExtension(file.Url).TrimStart('.').ToLowerInvariant();
+        return string.IsNullOrEmpty(ext) ? "mp4" : ext;
     }
 }
