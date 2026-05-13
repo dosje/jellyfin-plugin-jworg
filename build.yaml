@@ -6,7 +6,7 @@ framework: "net9.0"
 overview: "Browse and stream public JW.ORG videos as a Jellyfin Channel."
 description: "Adds a JW.ORG Channel to Jellyfin. The plugin browses public JW.ORG video categories and streams selected MP4 files directly from JW CDN URLs without downloading media locally."
 category: "Channels"
-owner: "<owner>"
+owner: "dosje"
 artifacts:
   - "Jellyfin.Plugin.JwOrg.dll"
 changelog: "Initial private testing release."
