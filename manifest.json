@@ -8,6 +8,14 @@
     "category": "Channels",
     "versions": [
       {
+        "version": "0.1.2.0",
+        "changelog": "Microsoft.Extensions.Http was being bundled in the plugin zip,\nconflicting with the server's own copies and breaking type identity\nfor IServiceCollection. Mark it PrivateAssets=\"all\" so it is\ncompile-time only and the server-provided assembly is used at runtime.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.1.2/Jellyfin.Plugin.JwOrg_0.1.2.zip",
+        "checksum": "269203cc5617534d4e364ffd466b0003",
+        "timestamp": "2026-05-14T08:33:26Z"
+      },
+      {
         "version": "0.1.1.0",
         "changelog": "Replace the comma-separated text field with a searchable dropdown\nbacked by the JW.ORG languages API (1,095 languages). Selected\nlanguages appear as removable chips. Falls back gracefully to\nmanual code entry if the API is unreachable.",
         "targetAbi": "10.11.0.0",
