@@ -8,62 +8,234 @@
     <div data-role="content">
         <div class="content-primary">
             <form id="JwOrgConfigForm">
+
                 <div class="verticalSection">
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="LanguageCodes">JW language codes</label>
-                        <input is="emby-input" id="LanguageCodes" name="LanguageCodes" type="text" />
-                        <div class="fieldDescription">Comma-separated JW language codes. Example: E,D,F.</div>
+                    <h2 class="sectionTitle">Languages</h2>
+                    <div class="fieldDescription" style="margin-bottom:1em;">
+                        Each language appears as a top-level folder in the JW.ORG channel.
+                        Start typing a language name or code to search all available JW.ORG languages.
                     </div>
+
+                    <!-- Active language chips -->
+                    <div id="JwLangTags" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;min-height:32px;"></div>
+
+                    <!-- Search + add row -->
+                    <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;">
+                        <div style="position:relative;flex:1;min-width:220px;max-width:360px;">
+                            <input is="emby-input"
+                                   id="JwLangInput"
+                                   type="text"
+                                   placeholder="Search language…"
+                                   autocomplete="off"
+                                   style="width:100%;" />
+                            <div id="JwLangDropdown"
+                                 style="display:none;position:absolute;z-index:999;width:100%;max-height:220px;overflow-y:auto;
+                                        background:var(--paper-item-bg,#1c1c1c);border:1px solid var(--divider-color,#333);
+                                        border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.5);top:100%;left:0;">
+                            </div>
+                        </div>
+                        <button is="emby-button" type="button" id="JwLangAdd" class="raised" style="white-space:nowrap;">
+                            <span>Add</span>
+                        </button>
+                    </div>
+                    <div id="JwLangStatus" class="fieldDescription" style="margin-top:6px;"></div>
+                </div>
+
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Playback</h2>
                     <div class="inputContainer">
                         <label class="inputLabel inputLabelUnfocused" for="MaxVideoHeight">Maximum video height</label>
                         <input is="emby-input" id="MaxVideoHeight" name="MaxVideoHeight" type="number" min="0" step="1" />
-                        <div class="fieldDescription">Leave empty to use the highest available MP4 file.</div>
+                        <div class="fieldDescription">Leave empty for highest available MP4. Set e.g. <strong>720</strong> to cap bandwidth.</div>
                     </div>
-                    <div class="inputContainer">
-                        <label class="inputLabel inputLabelUnfocused" for="CacheDurationHours">Metadata cache duration, hours</label>
-                        <input is="emby-input" id="CacheDurationHours" name="CacheDurationHours" type="number" min="1" step="1" />
-                    </div>
-                    <button is="emby-button" type="submit" class="raised button-submit block">
-                        <span>Save</span>
-                    </button>
                 </div>
+
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Cache</h2>
+                    <div class="inputContainer">
+                        <label class="inputLabel inputLabelUnfocused" for="CacheDurationHours">Metadata cache duration (hours)</label>
+                        <input is="emby-input" id="CacheDurationHours" name="CacheDurationHours" type="number" min="1" step="1" />
+                        <div class="fieldDescription">How long JW.ORG category and video metadata is cached in memory. Default: 12.</div>
+                    </div>
+                </div>
+
+                <button is="emby-button" type="submit" class="raised button-submit block">
+                    <span>Save</span>
+                </button>
+
             </form>
         </div>
     </div>
+
     <script type="text/javascript">
         var JwOrgConfig = {
-            pluginUniqueId: 'e6c6a305-c81f-41d4-a7b0-576a248110cb'
+            pluginUniqueId: 'e6c6a305-c81f-41d4-a7b0-576a248110cb',
+            languages: [],
+            allLanguages: [],
+            selectedCode: null
         };
 
+        // ── Chip rendering ────────────────────────────────────────────────────
+        function getLabel(code) {
+            var found = JwOrgConfig.allLanguages.find(function (l) { return l.code === code; });
+            return found ? (found.vernacularName || found.name || code) + ' (' + code + ')' : code;
+        }
+
+        function renderTags() {
+            var container = document.querySelector('#JwLangTags');
+            container.innerHTML = '';
+            JwOrgConfig.languages.forEach(function (code) {
+                var chip = document.createElement('div');
+                chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:4px 12px;' +
+                    'border-radius:16px;background:var(--accent,#00a4dc);color:#fff;font-size:.85em;font-weight:600;';
+                chip.textContent = getLabel(code);
+
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = '✕';
+                btn.style.cssText = 'background:none;border:none;color:inherit;cursor:pointer;padding:0 0 0 4px;font-size:.9em;line-height:1;';
+                btn.setAttribute('aria-label', 'Remove ' + code);
+                btn.addEventListener('click', (function (c) {
+                    return function () {
+                        JwOrgConfig.languages = JwOrgConfig.languages.filter(function (x) { return x !== c; });
+                        renderTags();
+                    };
+                }(code)));
+
+                chip.appendChild(btn);
+                container.appendChild(chip);
+            });
+        }
+
+        // ── Dropdown search ───────────────────────────────────────────────────
+        function showDropdown(matches) {
+            var dd = document.querySelector('#JwLangDropdown');
+            dd.innerHTML = '';
+            if (!matches.length) { dd.style.display = 'none'; return; }
+
+            matches.slice(0, 50).forEach(function (lang) {
+                var item = document.createElement('div');
+                item.style.cssText = 'padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--divider-color,#333);font-size:.9em;';
+                item.dataset.code = lang.code;
+                var nameStr = lang.vernacularName && lang.vernacularName !== lang.name
+                    ? lang.vernacularName + ' / ' + lang.name
+                    : (lang.name || lang.code);
+                item.innerHTML = '<strong>' + lang.code + '</strong> — ' + nameStr;
+
+                item.addEventListener('mousedown', function (e) {
+                    e.preventDefault();
+                    selectLanguage(lang);
+                });
+                item.addEventListener('mouseover', function () {
+                    item.style.background = 'var(--accent,#00a4dc)';
+                    item.style.color = '#fff';
+                });
+                item.addEventListener('mouseout', function () {
+                    item.style.background = '';
+                    item.style.color = '';
+                });
+                dd.appendChild(item);
+            });
+
+            dd.style.display = 'block';
+        }
+
+        function hideDropdown() {
+            document.querySelector('#JwLangDropdown').style.display = 'none';
+        }
+
+        function selectLanguage(lang) {
+            JwOrgConfig.selectedCode = lang.code;
+            var nameStr = lang.vernacularName || lang.name || lang.code;
+            document.querySelector('#JwLangInput').value = nameStr + ' (' + lang.code + ')';
+            hideDropdown();
+        }
+
+        document.querySelector('#JwLangInput').addEventListener('input', function () {
+            JwOrgConfig.selectedCode = null;
+            var q = this.value.trim().toLowerCase();
+            if (!q) { hideDropdown(); return; }
+            var matches = JwOrgConfig.allLanguages.filter(function (l) {
+                return l.code.toLowerCase().startsWith(q) ||
+                    (l.name || '').toLowerCase().includes(q) ||
+                    (l.vernacularName || '').toLowerCase().includes(q);
+            });
+            showDropdown(matches);
+        });
+
+        document.querySelector('#JwLangInput').addEventListener('blur', function () {
+            setTimeout(hideDropdown, 150);
+        });
+
+        // ── Add language ──────────────────────────────────────────────────────
+        function addLanguage() {
+            var code = JwOrgConfig.selectedCode;
+            if (!code) {
+                // Allow typing a raw code directly
+                var raw = document.querySelector('#JwLangInput').value.trim().toUpperCase().split(/[\s(]/)[0];
+                if (raw) code = raw;
+            }
+            if (!code) return;
+            if (JwOrgConfig.languages.indexOf(code) === -1) {
+                JwOrgConfig.languages.push(code);
+                renderTags();
+            }
+            document.querySelector('#JwLangInput').value = '';
+            JwOrgConfig.selectedCode = null;
+            hideDropdown();
+            document.querySelector('#JwLangInput').focus();
+        }
+
+        document.querySelector('#JwLangAdd').addEventListener('click', addLanguage);
+        document.querySelector('#JwLangInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); addLanguage(); }
+        });
+
+        // ── Load languages from JW API ────────────────────────────────────────
+        function loadJwLanguages() {
+            var status = document.querySelector('#JwLangStatus');
+            status.textContent = 'Loading available languages…';
+            fetch('https://b.jw-cdn.org/apis/mediator/v1/languages/E/all?clientType=www')
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    JwOrgConfig.allLanguages = (data.languages || [])
+                        .filter(function (l) { return l.code; })
+                        .sort(function (a, b) { return (a.name || '').localeCompare(b.name || ''); });
+                    renderTags();
+                    status.textContent = JwOrgConfig.allLanguages.length + ' languages available.';
+                })
+                .catch(function () {
+                    status.textContent = 'Could not load language list — enter codes manually (e.g. E, D, F).';
+                    renderTags();
+                });
+        }
+
+        // ── Page lifecycle ────────────────────────────────────────────────────
         document.querySelector('#JwOrgConfigPage').addEventListener('pageshow', function () {
             Dashboard.showLoadingMsg();
             ApiClient.getPluginConfiguration(JwOrgConfig.pluginUniqueId).then(function (config) {
-                document.querySelector('#LanguageCodes').value = (config.LanguageCodes || ['E']).join(',');
+                JwOrgConfig.languages = (config.LanguageCodes && config.LanguageCodes.length)
+                    ? config.LanguageCodes.slice()
+                    : ['E'];
                 document.querySelector('#MaxVideoHeight').value = config.MaxVideoHeight || '';
                 document.querySelector('#CacheDurationHours').value = config.CacheDurationHours || 12;
                 Dashboard.hideLoadingMsg();
+                loadJwLanguages();
             });
         });
 
         document.querySelector('#JwOrgConfigForm').addEventListener('submit', function (event) {
             event.preventDefault();
             Dashboard.showLoadingMsg();
-
             ApiClient.getPluginConfiguration(JwOrgConfig.pluginUniqueId).then(function (config) {
-                config.LanguageCodes = document.querySelector('#LanguageCodes').value
-                    .split(',')
-                    .map(function (item) { return item.trim().toUpperCase(); })
-                    .filter(Boolean);
-
+                config.LanguageCodes = JwOrgConfig.languages.length ? JwOrgConfig.languages : ['E'];
                 var maxHeight = document.querySelector('#MaxVideoHeight').value;
                 config.MaxVideoHeight = maxHeight ? parseInt(maxHeight, 10) : null;
                 config.CacheDurationHours = parseInt(document.querySelector('#CacheDurationHours').value || '12', 10);
-
                 ApiClient.updatePluginConfiguration(JwOrgConfig.pluginUniqueId, config).then(function () {
                     Dashboard.processPluginConfigurationUpdateResult();
                 });
             });
-
             return false;
         });
     </script>
