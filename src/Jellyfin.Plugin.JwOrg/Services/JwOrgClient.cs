@@ -266,37 +266,44 @@ public sealed class JwOrgClient : IJwOrgClient
         {
             if (images.TryGetProperty(name, out var image))
             {
-                if (image.ValueKind == JsonValueKind.String)
-                {
-                    return image.GetString();
-                }
-
-                if (image.ValueKind == JsonValueKind.Object)
-                {
-                    var directUrl = ReadString(image, "url");
-                    if (directUrl is not null) return directUrl;
-                    // Nested size variants: lg > md > sm
-                    foreach (var size in new[] { "lg", "md", "sm" })
-                    {
-                        if (image.TryGetProperty(size, out var sizeObj) && sizeObj.ValueKind == JsonValueKind.Object)
-                        {
-                            var sizeUrl = ReadString(sizeObj, "url");
-                            if (sizeUrl is not null) return sizeUrl;
-                        }
-                    }
-                }
+                var url = ExtractImageUrl(image);
+                if (url is not null) return url;
             }
         }
 
-        return images.EnumerateObject().Select(property => property.Value).Select(value =>
+        // Fallback: iterate all image type properties
+        return images.EnumerateObject()
+            .Select(p => ExtractImageUrl(p.Value))
+            .FirstOrDefault(u => !string.IsNullOrWhiteSpace(u));
+    }
+
+    private static string? ExtractImageUrl(JsonElement image)
+    {
+        // Direct string URL
+        if (image.ValueKind == JsonValueKind.String)
+            return image.GetString();
+
+        if (image.ValueKind != JsonValueKind.Object)
+            return null;
+
+        // Direct url property
+        var direct = ReadString(image, "url");
+        if (direct is not null) return direct;
+
+        // Size variants: lg/xl/md/sm values can be string URLs or objects with a url property
+        foreach (var size in new[] { "lg", "xl", "md", "sm" })
         {
-            return value.ValueKind switch
+            if (!image.TryGetProperty(size, out var sizeElement)) continue;
+            if (sizeElement.ValueKind == JsonValueKind.String)
+                return sizeElement.GetString();
+            if (sizeElement.ValueKind == JsonValueKind.Object)
             {
-                JsonValueKind.String => value.GetString(),
-                JsonValueKind.Object => ReadString(value, "url"),
-                _ => null
-            };
-        }).FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+                var sizeUrl = ReadString(sizeElement, "url");
+                if (sizeUrl is not null) return sizeUrl;
+            }
+        }
+
+        return null;
     }
 
     private static TimeSpan ReadDuration(JsonElement element)

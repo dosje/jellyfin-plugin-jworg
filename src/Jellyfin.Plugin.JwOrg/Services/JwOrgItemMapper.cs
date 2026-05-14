@@ -100,14 +100,13 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
 
     private static ChannelItemInfo? MapMediaItem(JwOrgMediaItem mediaItem, Configuration.PluginConfiguration configuration)
     {
-        var selectedFile = SelectFile(mediaItem.Files, configuration.MaxVideoHeight);
-        if (selectedFile is null)
+        // Verify at least one playable file exists — skip items with no valid source
+        if (SelectFile(mediaItem.Files, configuration.MaxVideoHeight) is null)
         {
             return null;
         }
 
         var durationTicks = mediaItem.Duration is { Ticks: > 0 } duration ? duration.Ticks : (long?)null;
-        var source = BuildMediaSource(mediaItem, selectedFile);
 
         return new ChannelItemInfo
         {
@@ -129,8 +128,7 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
             ProviderIds = new Dictionary<string, string>
             {
                 [ProviderIdName] = $"media:{mediaItem.LanguageCode}:{mediaItem.Key}"
-            },
-            MediaSources = [source]
+            }
         };
     }
 
