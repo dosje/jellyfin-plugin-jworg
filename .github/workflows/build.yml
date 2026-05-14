@@ -242,6 +242,7 @@ jobs:
           git add manifest.json
           git diff --staged --quiet \
             || git commit -m "chore: update manifest for ${{ github.ref_name }} [skip ci]"
+          git pull --rebase origin main
           git push origin HEAD:main
 
       - name: Create stable release
