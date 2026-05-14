@@ -10,12 +10,13 @@ public sealed class JwOrgItemMapperTests
     private readonly JwOrgItemMapper _mapper = new();
 
     [Fact]
-    public void MapLanguagesFallsBackToEnglishWhenConfigurationIsEmpty()
+    public void MapLanguagesSetsNameAndIdFromTuple()
     {
-        var result = _mapper.MapLanguages([]);
+        var result = _mapper.MapLanguages([(Code: "E", Name: "English")]);
 
         Assert.Single(result.Items);
         Assert.Equal("lang:E", result.Items[0].Id);
+        Assert.Equal("English", result.Items[0].Name);
     }
 
     [Fact]

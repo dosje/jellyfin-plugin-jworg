@@ -2,6 +2,7 @@ using System.Globalization;
 using MediaBrowser.Controller.Channels;
 using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Dto;
+using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.MediaInfo;
 
 namespace Jellyfin.Plugin.JwOrg.Services;
@@ -12,19 +13,19 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
     private const string ProviderIdName = "JWORG";
 
     /// <inheritdoc />
-    public ChannelItemResult MapLanguages(IEnumerable<string> languageCodes)
+    public ChannelItemResult MapLanguages(IReadOnlyList<(string Code, string Name)> languages)
     {
-        var items = NormalizeLanguageCodes(languageCodes)
-            .Select(languageCode => new ChannelItemInfo
+        var items = languages
+            .Select(lang => new ChannelItemInfo
             {
-                Id = JwOrgFolderId.Language(languageCode),
-                Name = languageCode,
-                Overview = $"JW.ORG videos in language code {languageCode}.",
+                Id = JwOrgFolderId.Language(lang.Code),
+                Name = lang.Name,
+                Overview = $"JW.ORG videos in {lang.Name}.",
                 Type = ChannelItemType.Folder,
                 FolderType = ChannelFolderType.Container,
                 ProviderIds = new Dictionary<string, string>
                 {
-                    [ProviderIdName] = $"language:{languageCode}"
+                    [ProviderIdName] = $"language:{lang.Code}"
                 }
             })
             .ToArray();
@@ -56,7 +57,10 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
     {
         var items = new List<ChannelItemInfo>();
         items.AddRange(category.Subcategories.Where(item => !string.IsNullOrWhiteSpace(item.Key)).Select(MapCategoryFolder));
-        items.AddRange(category.Media.Select(item => MapMediaItem(item, configuration)).OfType<ChannelItemInfo>());
+        items.AddRange(category.Media
+            .Select(item => MapMediaItem(item, configuration))
+            .OfType<ChannelItemInfo>()
+            .OrderByDescending(item => item.PremiereDate ?? DateTime.MinValue));
 
         return new ChannelItemResult
         {
@@ -106,7 +110,12 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
             RunTimeTicks = durationTicks,
             Size = selectedFile.SizeBytes,
             Bitrate = selectedFile.Bitrate,
-            ETag = mediaItem.Key
+            ETag = mediaItem.Key,
+            MediaStreams =
+            [
+                new MediaStream { Type = MediaStreamType.Video, Codec = "h264", Index = 0, IsDefault = true },
+                new MediaStream { Type = MediaStreamType.Audio, Codec = "aac",  Index = 1, IsDefault = true }
+            ]
         };
 
         return new ChannelItemInfo
@@ -142,10 +151,7 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
             .ThenByDescending(file => file.Bitrate ?? 0)
             .ToArray();
 
-        return candidates.FirstOrDefault()
-            ?? files.Where(file => Uri.TryCreate(file.Url, UriKind.Absolute, out _))
-                .OrderByDescending(file => file.Height ?? 0)
-                .FirstOrDefault();
+        return candidates.FirstOrDefault();
     }
 
     private static bool IsMp4(JwOrgMediaFile file)

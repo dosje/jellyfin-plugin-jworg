@@ -100,6 +100,34 @@ public sealed class JwOrgClient : IJwOrgClient
         }, cancellationToken);
     }
 
+    /// <inheritdoc />
+    public async Task<string> GetLanguageNameAsync(string languageCode, CancellationToken cancellationToken)
+    {
+        var normalized = NormalizeLanguageCode(languageCode);
+        const string cacheKey = "languages:all";
+        var names = await _cache.GetOrCreateAsync<IReadOnlyDictionary<string, string>>(
+            cacheKey,
+            TimeSpan.FromHours(24),
+            async ct =>
+            {
+                using var document = await GetJsonAsync($"{ApiBase}/languages/E/all?clientType=www", ct).ConfigureAwait(false);
+                if (!document.RootElement.TryGetProperty("languages", out var langs) || langs.ValueKind != JsonValueKind.Array)
+                {
+                    return new Dictionary<string, string>();
+                }
+
+                return langs.EnumerateArray()
+                    .Where(l => l.TryGetProperty("code", out _))
+                    .ToDictionary(
+                        l => ReadString(l, "code") ?? string.Empty,
+                        l => ReadString(l, "vernacularName") ?? ReadString(l, "name") ?? string.Empty,
+                        StringComparer.OrdinalIgnoreCase);
+            },
+            cancellationToken).ConfigureAwait(false);
+
+        return names.TryGetValue(normalized, out var name) && !string.IsNullOrWhiteSpace(name) ? name : normalized;
+    }
+
     private async Task<IReadOnlyList<JwOrgMediaItem>> HydrateMediaAsync(string languageCode, IReadOnlyList<JwOrgMediaItem> media, PluginConfiguration configuration, CancellationToken cancellationToken)
     {
         var tasks = media.Select(async item =>

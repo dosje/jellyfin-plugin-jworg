@@ -9,9 +9,10 @@ namespace Jellyfin.Plugin.JwOrg.Services;
 public interface IJwOrgItemMapper
 {
     /// <summary>
-    /// Maps configured languages to channel folders.
+    /// Maps configured languages to channel folders using display names.
+    /// Key = language code, Value = vernacular display name.
     /// </summary>
-    ChannelItemResult MapLanguages(IEnumerable<string> languageCodes);
+    ChannelItemResult MapLanguages(IReadOnlyList<(string Code, string Name)> languages);
 
     /// <summary>
     /// Maps categories to channel folders.

@@ -55,7 +55,8 @@ public sealed class JwOrgChannel : IChannel
             ContentTypes = [ChannelMediaContentType.Clip],
             MaxPageSize = 100,
             SupportsContentDownloading = false,
-            AutoRefreshLevels = 2
+            AutoRefreshLevels = 2,
+            DefaultSortFields = [ChannelItemSortField.DateCreated, ChannelItemSortField.Name]
         };
     }
 
@@ -93,7 +94,23 @@ public sealed class JwOrgChannel : IChannel
         {
             if (folder.Kind == JwOrgFolderKind.Root)
             {
-                return _mapper.MapLanguages(configuration.LanguageCodes);
+                var codes = configuration.LanguageCodes;
+                if (codes.Length == 1)
+                {
+                    var singleCode = codes[0];
+                    var topCategories = await _client.GetTopCategoriesAsync(singleCode, configuration, cancellationToken).ConfigureAwait(false);
+                    if (topCategories.Count == 0)
+                    {
+                        _logger.LogWarning("No top categories returned for language {Language}", singleCode);
+                    }
+
+                    return _mapper.MapCategories(topCategories);
+                }
+
+                var nametasks = codes.Select(async code =>
+                    (Code: code, Name: await _client.GetLanguageNameAsync(code, cancellationToken).ConfigureAwait(false)));
+                var languages = await Task.WhenAll(nametasks).ConfigureAwait(false);
+                return _mapper.MapLanguages(languages);
             }
 
             if (folder.Kind == JwOrgFolderKind.LanguageRoot)
@@ -111,7 +128,13 @@ public sealed class JwOrgChannel : IChannel
                 .GetCategoryAsync(folder.LanguageCode, folder.CategoryKey, configuration, query.StartIndex ?? 0, query.Limit, cancellationToken)
                 .ConfigureAwait(false);
 
-            return _mapper.MapCategory(category, configuration);
+            var result = _mapper.MapCategory(category, configuration);
+            foreach (var item in result.Items.Where(i => i.Type == ChannelItemType.Media && string.IsNullOrEmpty(i.ImageUrl)))
+            {
+                _logger.LogWarning("Media item {Id} ({Name}) has no image URL", item.Id, item.Name);
+            }
+
+            return result;
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

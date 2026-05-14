@@ -21,4 +21,9 @@ public interface IJwOrgClient
     /// Gets a single media item by key.
     /// </summary>
     Task<JwOrgMediaItem?> GetMediaItemAsync(string languageCode, string mediaKey, PluginConfiguration configuration, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the vernacular display name for a language code, falling back to the code itself.
+    /// </summary>
+    Task<string> GetLanguageNameAsync(string languageCode, CancellationToken cancellationToken);
 }
