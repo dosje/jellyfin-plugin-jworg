@@ -8,6 +8,14 @@
     "category": "Channels",
     "versions": [
       {
+        "version": "0.1.1.0",
+        "changelog": "Replace the comma-separated text field with a searchable dropdown\nbacked by the JW.ORG languages API (1,095 languages). Selected\nlanguages appear as removable chips. Falls back gracefully to\nmanual code entry if the API is unreachable.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.1.1/Jellyfin.Plugin.JwOrg_0.1.1.zip",
+        "checksum": "cbed842b04873c5be1554e4a6b225565",
+        "timestamp": "2026-05-14T08:22:51Z"
+      },
+      {
         "version": "0.1.0.0",
         "changelog": "Initial release. Adds a JW.ORG Channel to Jellyfin for browsing and streaming public JW.ORG video content with multi-language support.",
         "targetAbi": "10.11.0.0",
