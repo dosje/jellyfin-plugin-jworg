@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/dosje/jellyfin-plugin-jworg/main/src/Jellyfin.Plugin.JwOrg/Images/thumbnail.png",
     "versions": [
       {
+        "version": "0.2.2.0",
+        "changelog": "Declaring ImageType.Backdrop caused Jellyfin to use the channel banner\nas a fallback tile image for categories/folders that have no image from\nthe JW.ORG API (Featured, language folders). It was cropped to a square\nand looked broken. Removing Backdrop lets Jellyfin show its own neutral\nplaceholder for imageless items instead.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.2.2/Jellyfin.Plugin.JwOrg_0.2.2.zip",
+        "checksum": "6f2eee8e6e28ae96bcbade96e9942033",
+        "timestamp": "2026-05-14T20:58:33Z"
+      },
+      {
         "version": "0.2.1.0",
         "changelog": "- Redesign logo.png 256x256: remove circle, full-bleed dark navy\n  gradient matching banner style, signal arcs + JW + Broadcasting text\n- Add thumbnail.png 800x400: purpose-built plugin catalog tile image\n  same dark navy gradient + broadcast waves + JW Broadcasting title\n- Update imageUrl in manifest.json to point to thumbnail.png\n- Embed thumbnail.png in assembly",
         "targetAbi": "10.11.0.0",
