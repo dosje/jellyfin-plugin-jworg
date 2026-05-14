@@ -20,7 +20,7 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
             {
                 Id = JwOrgFolderId.Language(lang.Code),
                 Name = lang.Name,
-                Overview = $"JW.ORG videos in {lang.Name}.",
+                Overview = $"JW Broadcasting videos in {lang.Name}.",
                 Type = ChannelItemType.Folder,
                 FolderType = ChannelFolderType.Container,
                 ProviderIds = new Dictionary<string, string>

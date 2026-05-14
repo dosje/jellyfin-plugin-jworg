@@ -33,10 +33,10 @@ public sealed class JwOrgChannel : IChannel, IRequiresMediaInfoCallback
     }
 
     /// <inheritdoc />
-    public string Name => "JW.ORG";
+    public string Name => "JW Broadcasting";
 
     /// <inheritdoc />
-    public string Description => "Browse and stream public JW.ORG videos.";
+    public string Description => "Browse and stream public JW.ORG videos via JW Broadcasting.";
 
     /// <inheritdoc />
     public string DataVersion => "4";
@@ -68,7 +68,9 @@ public sealed class JwOrgChannel : IChannel, IRequiresMediaInfoCallback
     public Task<DynamicImageResponse> GetChannelImage(ImageType type, CancellationToken cancellationToken)
     {
         var assembly = GetType().Assembly;
-        var resourceName = $"{assembly.GetName().Name}.Images.logo.png";
+        var resourceName = type == ImageType.Backdrop
+            ? $"{assembly.GetName().Name}.Images.banner.png"
+            : $"{assembly.GetName().Name}.Images.logo.png";
         var stream = assembly.GetManifestResourceStream(resourceName);
         if (stream is null) return Task.FromResult(new DynamicImageResponse { HasImage = false });
         return Task.FromResult(new DynamicImageResponse
@@ -82,7 +84,7 @@ public sealed class JwOrgChannel : IChannel, IRequiresMediaInfoCallback
     /// <inheritdoc />
     public IEnumerable<ImageType> GetSupportedChannelImages()
     {
-        return [ImageType.Primary];
+        return [ImageType.Primary, ImageType.Backdrop];
     }
 
     /// <inheritdoc />

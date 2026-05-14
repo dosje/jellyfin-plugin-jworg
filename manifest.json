@@ -1,8 +1,8 @@
 [
   {
     "guid": "e6c6a305-c81f-41d4-a7b0-576a248110cb",
-    "name": "JW.ORG",
-    "description": "Browse and stream public JW.ORG videos as a Jellyfin Channel.",
+    "name": "JW Broadcasting",
+    "description": "Browse and stream public JW.ORG videos as a Jellyfin Channel via JW Broadcasting.",
     "overview": "Adds a JW.ORG Channel to Jellyfin. The plugin browses public JW.ORG video categories and streams selected MP4 files directly from JW CDN URLs without downloading media locally.",
     "owner": "dosje",
     "category": "Channels",

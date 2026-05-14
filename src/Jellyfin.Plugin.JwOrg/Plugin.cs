@@ -24,7 +24,7 @@ public sealed class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     }
 
     /// <inheritdoc />
-    public override string Name => "JW.ORG";
+    public override string Name => "JW Broadcasting";
 
     /// <inheritdoc />
     public override Guid Id => Guid.Parse("e6c6a305-c81f-41d4-a7b0-576a248110cb");
