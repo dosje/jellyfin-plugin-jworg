@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Configuration\configPage.html" />
+    <EmbeddedResource Include="thumb.png" />
     <EmbeddedResource Include="Images\logo.png" />
     <EmbeddedResource Include="Images\banner.png" />
   </ItemGroup>
