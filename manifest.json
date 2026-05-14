@@ -8,6 +8,14 @@
     "category": "Channels",
     "versions": [
       {
+        "version": "0.1.9.0",
+        "changelog": "- Redesign logo.png: replace tower drawing (looked like a Chinese\n  character) with clear signal arcs + bold \"JW Broadcasting\" text\n  on a dark navy circle\n- Add thumb.png embedded as Jellyfin.Plugin.JwOrg.thumb.png so\n  Jellyfin serves it at /Plugins/{guid}/Image (plugin catalog page)",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.1.9/Jellyfin.Plugin.JwOrg_0.1.9.zip",
+        "checksum": "3ee44c3511d41c6111a18b5c83cd128f",
+        "timestamp": "2026-05-14T15:22:50Z"
+      },
+      {
         "version": "0.1.8.0",
         "changelog": "Logo was 256 KB (RGBA), banner was 3.5 MB (RGBA) \u2014 both caused display\nfailures in Jellyfin. Replaced with RGB PNGs: logo 2 KB, banner 30 KB.",
         "targetAbi": "10.11.0.0",
