@@ -8,6 +8,14 @@
     "category": "Channels",
     "versions": [
       {
+        "version": "0.1.5.0",
+        "changelog": "Update MapCategoryIncludesSubcategoriesAndPlayableMedia to assert\nempty MediaSources (now populated via callback only) and correct item id.\nAdd MapMediaSourcesSelectsHighestQualityWithinLimit test for the new\nMapMediaSources method.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.1.5/Jellyfin.Plugin.JwOrg_0.1.5.zip",
+        "checksum": "fdc10838e5ca5c07c6e4260b1609e18a",
+        "timestamp": "2026-05-14T10:11:09Z"
+      },
+      {
         "version": "0.1.4.0",
         "changelog": "- Pipeline now passes -p:Version from the git tag so the DLL assembly\n  version matches the release (e.g. 0.1.4.0 instead of always 0.1.0.0)\n- Implement IRequiresMediaInfoCallback so Jellyfin fetches live media\n  sources at play time instead of using stale cached database values\n- Fix ReadImageUrl to resolve nested size-variant objects (lg/md/sm)\n  from the JW.ORG images API \u2014 thumbnails were always returning null\n- Bump DataVersion to 2 to force re-index of all channel items so\n  fixed metadata and images are picked up immediately after upgrade\n- Add Studios and OfficialRating fields to video detail pages",
         "targetAbi": "10.11.0.0",
