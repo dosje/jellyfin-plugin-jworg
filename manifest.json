@@ -8,6 +8,14 @@
     "category": "Channels",
     "versions": [
       {
+        "version": "0.1.8.0",
+        "changelog": "Logo was 256 KB (RGBA), banner was 3.5 MB (RGBA) \u2014 both caused display\nfailures in Jellyfin. Replaced with RGB PNGs: logo 2 KB, banner 30 KB.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.1.8/Jellyfin.Plugin.JwOrg_0.1.8.zip",
+        "checksum": "5fefea90871157d96d0c168331ae7a67",
+        "timestamp": "2026-05-14T14:41:58Z"
+      },
+      {
         "version": "0.1.7.0",
         "changelog": "Pull --rebase before pushing the manifest commit back to main so the\nstable release job doesn't fail when the branch has moved ahead during\nthe build.",
         "targetAbi": "10.11.0.0",
