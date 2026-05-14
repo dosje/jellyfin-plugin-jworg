@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Manual helper — the CI pipeline runs this automatically on tag releases.
-# Usage: scripts/update-manifest.sh <version> <sha256> [changelog]
-# Example: scripts/update-manifest.sh 0.1.0 abc123def "Initial release."
+# Usage: scripts/update-manifest.sh <version> <md5> [changelog]
+# Example: scripts/update-manifest.sh 0.1.0 75a055ed5aae28c2890b69f57eb7714f "Initial release."
+# Compute MD5: md5sum Jellyfin.Plugin.JwOrg_<version>.zip | awk '{print $1}'
 set -euo pipefail
 
 if [ "$#" -lt 2 ]; then

@@ -9,10 +9,10 @@
     "versions": [
       {
         "version": "0.1.0.0",
-        "changelog": "Add GPL-3.0 license\n\nCo-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>",
+        "changelog": "Initial release. Adds a JW.ORG Channel to Jellyfin for browsing and streaming public JW.ORG video content with multi-language support.",
         "targetAbi": "10.11.0.0",
         "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.1.0/Jellyfin.Plugin.JwOrg_0.1.0.zip",
-        "checksum": "d46aef5a23e8323368c0664c79fd7088b87f471a963796fa54f91d4e680cfa5c",
+        "checksum": "75a055ed5aae28c2890b69f57eb7714f",
         "timestamp": "2026-05-14T07:05:36Z"
       }
     ]

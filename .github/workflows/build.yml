@@ -120,9 +120,9 @@ jobs:
           ZIP_NAME="Jellyfin.Plugin.JwOrg_${VERSION}.zip"
           mkdir -p dist
           cd artifacts/plugin && zip -r "../../dist/${ZIP_NAME}" . && cd ../..
-          SHA256="$(sha256sum "dist/${ZIP_NAME}" | awk '{print $1}')"
+          MD5="$(md5sum "dist/${ZIP_NAME}" | awk '{print $1}')"
           echo "zip_name=${ZIP_NAME}" >> "$GITHUB_OUTPUT"
-          echo "sha256=${SHA256}"     >> "$GITHUB_OUTPUT"
+          echo "checksum=${MD5}"      >> "$GITHUB_OUTPUT"
           echo "version=${VERSION}"   >> "$GITHUB_OUTPUT"
 
       - name: Create pre-release
@@ -135,7 +135,7 @@ jobs:
             > ⚠️ **Beta / Release Candidate** — for testing only.
             > Install manually: download the zip and drop its contents into your Jellyfin plugins folder.
             >
-            > SHA-256: `${{ steps.pkg.outputs.sha256 }}`
+            > MD5: `${{ steps.pkg.outputs.checksum }}`
 
 # ──────────────────────────────────────────────────────────────
 # STABLE release — v* tags WITHOUT beta/rc suffix → full release
@@ -187,13 +187,13 @@ jobs:
           mkdir -p dist
           cd artifacts/plugin && zip -r "../../dist/${ZIP_NAME}" . && cd ../..
 
-          SHA256="$(sha256sum "dist/${ZIP_NAME}" | awk '{print $1}')"
+          MD5="$(md5sum "dist/${ZIP_NAME}" | awk '{print $1}')"
           SOURCE_URL="https://github.com/${{ github.repository }}/releases/download/${GITHUB_REF_NAME}/${ZIP_NAME}"
 
           echo "version=${VERSION}"           >> "$GITHUB_OUTPUT"
           echo "version_full=${VERSION_FULL}" >> "$GITHUB_OUTPUT"
           echo "zip_name=${ZIP_NAME}"         >> "$GITHUB_OUTPUT"
-          echo "sha256=${SHA256}"             >> "$GITHUB_OUTPUT"
+          echo "checksum=${MD5}"              >> "$GITHUB_OUTPUT"
           echo "source_url=${SOURCE_URL}"     >> "$GITHUB_OUTPUT"
           echo "timestamp=${TIMESTAMP}"       >> "$GITHUB_OUTPUT"
           echo "target_abi=${TARGET_ABI}"     >> "$GITHUB_OUTPUT"
@@ -202,12 +202,12 @@ jobs:
         env:
           VER: ${{ steps.pkg.outputs.version_full }}
           URL: ${{ steps.pkg.outputs.source_url }}
-          SHA: ${{ steps.pkg.outputs.sha256 }}
+          SHA: ${{ steps.pkg.outputs.checksum }}
           TS:  ${{ steps.pkg.outputs.timestamp }}
           ABI: ${{ steps.pkg.outputs.target_abi }}
           TAG: ${{ github.ref_name }}
         run: |
-          CHANGELOG="$(git tag -l --format='%(contents)' "$TAG" | head -20 || echo "See release notes.")"
+          CHANGELOG="$(git tag -l --format='%(contents:body)' "$TAG" | sed '/^Co-Authored-By:/d' | sed '/^$/d' | head -20 || echo "See release notes.")"
           export CHANGELOG
           python3 - <<PYEOF
           import json, os
@@ -224,7 +224,7 @@ jobs:
           }
           existing = [
               v for v in manifest[0]["versions"]
-              if v.get("checksum", "") not in ("<sha256>", "")
+              if v.get("checksum", "") not in ("<sha256>", "<checksum>", "")
               and v.get("version", "") != os.environ["VER"]
           ]
           manifest[0]["versions"] = [new_version] + existing
