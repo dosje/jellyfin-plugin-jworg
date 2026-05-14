@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/dosje/jellyfin-plugin-jworg/main/src/Jellyfin.Plugin.JwOrg/Images/thumbnail.png",
     "versions": [
       {
+        "version": "0.2.1.0",
+        "changelog": "- Redesign logo.png 256x256: remove circle, full-bleed dark navy\n  gradient matching banner style, signal arcs + JW + Broadcasting text\n- Add thumbnail.png 800x400: purpose-built plugin catalog tile image\n  same dark navy gradient + broadcast waves + JW Broadcasting title\n- Update imageUrl in manifest.json to point to thumbnail.png\n- Embed thumbnail.png in assembly",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.2.1/Jellyfin.Plugin.JwOrg_0.2.1.zip",
+        "checksum": "0c99fca738d5e1ba6ef9cbf6b520037f",
+        "timestamp": "2026-05-14T16:26:30Z"
+      },
+      {
         "version": "0.2.0.0",
         "changelog": "- Add imageUrl to manifest.json pointing to logo.png on GitHub raw:\n  Jellyfin downloads this when installing and shows it in Admin\u2192Plugins\n  instead of the default puzzle piece\n- Bump DataVersion 4\u21925 to force Jellyfin to re-index the channel and\n  refresh the cached channel logo on the home screen",
         "targetAbi": "10.11.0.0",
