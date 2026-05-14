@@ -52,7 +52,30 @@ public sealed class JwOrgItemMapperTests
         Assert.Equal(2, result.Items.Count);
         Assert.Equal(ChannelItemType.Folder, result.Items[0].Type);
         Assert.Equal(ChannelItemType.Media, result.Items[1].Type);
-        Assert.Equal("https://cdn.example.test/video-720.mp4", result.Items[1].MediaSources[0].Path);
+        Assert.Equal("jworg:E:pub-jwb-202605_1_VIDEO", result.Items[1].Id);
+        Assert.Empty(result.Items[1].MediaSources);
+    }
+
+    [Fact]
+    public void MapMediaSourcesSelectsHighestQualityWithinLimit()
+    {
+        var mediaItem = new JwOrgMediaItem(
+            "E",
+            "pub-jwb-202605_1_VIDEO",
+            "May 2026 Broadcast",
+            null,
+            null,
+            DateTimeOffset.Parse("2026-05-01T00:00:00Z"),
+            TimeSpan.FromMinutes(60),
+            [
+                new JwOrgMediaFile("https://cdn.example.test/video-720.mp4", "720p", "mp4", 720, 1000, 2500000),
+                new JwOrgMediaFile("https://cdn.example.test/video-1080.mp4", "1080p", "mp4", 1080, 2000, 5000000)
+            ]);
+
+        var sources = _mapper.MapMediaSources(mediaItem, new PluginConfiguration { MaxVideoHeight = 720 });
+
+        Assert.Single(sources);
+        Assert.Equal("https://cdn.example.test/video-720.mp4", sources[0].Path);
     }
 
     [Fact]
