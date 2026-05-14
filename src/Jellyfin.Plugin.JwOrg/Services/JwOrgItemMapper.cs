@@ -86,6 +86,18 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
         };
     }
 
+    /// <inheritdoc />
+    public IReadOnlyList<MediaSourceInfo> MapMediaSources(JwOrgMediaItem mediaItem, Configuration.PluginConfiguration configuration)
+    {
+        var selectedFile = SelectFile(mediaItem.Files, configuration.MaxVideoHeight);
+        if (selectedFile is null)
+        {
+            return [];
+        }
+
+        return [BuildMediaSource(mediaItem, selectedFile)];
+    }
+
     private static ChannelItemInfo? MapMediaItem(JwOrgMediaItem mediaItem, Configuration.PluginConfiguration configuration)
     {
         var selectedFile = SelectFile(mediaItem.Files, configuration.MaxVideoHeight);
@@ -95,7 +107,37 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
         }
 
         var durationTicks = mediaItem.Duration is { Ticks: > 0 } duration ? duration.Ticks : (long?)null;
-        var source = new MediaSourceInfo
+        var source = BuildMediaSource(mediaItem, selectedFile);
+
+        return new ChannelItemInfo
+        {
+            Id = StableItemId(mediaItem.LanguageCode, mediaItem.Key),
+            Name = mediaItem.Title,
+            OriginalTitle = mediaItem.Title,
+            Overview = mediaItem.Description,
+            ImageUrl = mediaItem.ImageUrl,
+            Type = ChannelItemType.Media,
+            MediaType = ChannelMediaType.Video,
+            ContentType = ChannelMediaContentType.Clip,
+            RunTimeTicks = durationTicks,
+            PremiereDate = mediaItem.PublishedAt?.UtcDateTime,
+            DateCreated = mediaItem.PublishedAt?.UtcDateTime,
+            DateModified = mediaItem.PublishedAt?.UtcDateTime ?? DateTime.UtcNow,
+            HomePageUrl = $"https://www.jw.org/finder?wtlocale={Uri.EscapeDataString(mediaItem.LanguageCode)}&lank={Uri.EscapeDataString(mediaItem.Key)}",
+            OfficialRating = "Unrated",
+            Studios = ["JW.ORG"],
+            ProviderIds = new Dictionary<string, string>
+            {
+                [ProviderIdName] = $"media:{mediaItem.LanguageCode}:{mediaItem.Key}"
+            },
+            MediaSources = [source]
+        };
+    }
+
+    private static MediaSourceInfo BuildMediaSource(JwOrgMediaItem mediaItem, JwOrgMediaFile selectedFile)
+    {
+        var durationTicks = mediaItem.Duration is { Ticks: > 0 } duration ? duration.Ticks : (long?)null;
+        return new MediaSourceInfo
         {
             Id = StableItemId(mediaItem.LanguageCode, mediaItem.Key),
             Name = selectedFile.Label ?? selectedFile.Height?.ToString(CultureInfo.InvariantCulture) ?? "MP4",
@@ -116,28 +158,6 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
                 new MediaStream { Type = MediaStreamType.Video, Codec = "h264", Index = 0, IsDefault = true },
                 new MediaStream { Type = MediaStreamType.Audio, Codec = "aac",  Index = 1, IsDefault = true }
             ]
-        };
-
-        return new ChannelItemInfo
-        {
-            Id = StableItemId(mediaItem.LanguageCode, mediaItem.Key),
-            Name = mediaItem.Title,
-            OriginalTitle = mediaItem.Title,
-            Overview = mediaItem.Description,
-            ImageUrl = mediaItem.ImageUrl,
-            Type = ChannelItemType.Media,
-            MediaType = ChannelMediaType.Video,
-            ContentType = ChannelMediaContentType.Clip,
-            RunTimeTicks = durationTicks,
-            PremiereDate = mediaItem.PublishedAt?.UtcDateTime,
-            DateCreated = mediaItem.PublishedAt?.UtcDateTime,
-            DateModified = mediaItem.PublishedAt?.UtcDateTime ?? DateTime.UtcNow,
-            HomePageUrl = $"https://www.jw.org/finder?wtlocale={Uri.EscapeDataString(mediaItem.LanguageCode)}&lank={Uri.EscapeDataString(mediaItem.Key)}",
-            ProviderIds = new Dictionary<string, string>
-            {
-                [ProviderIdName] = $"media:{mediaItem.LanguageCode}:{mediaItem.Key}"
-            },
-            MediaSources = [source]
         };
     }
 

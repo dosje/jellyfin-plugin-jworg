@@ -273,7 +273,17 @@ public sealed class JwOrgClient : IJwOrgClient
 
                 if (image.ValueKind == JsonValueKind.Object)
                 {
-                    return ReadString(image, "url");
+                    var directUrl = ReadString(image, "url");
+                    if (directUrl is not null) return directUrl;
+                    // Nested size variants: lg > md > sm
+                    foreach (var size in new[] { "lg", "md", "sm" })
+                    {
+                        if (image.TryGetProperty(size, out var sizeObj) && sizeObj.ValueKind == JsonValueKind.Object)
+                        {
+                            var sizeUrl = ReadString(sizeObj, "url");
+                            if (sizeUrl is not null) return sizeUrl;
+                        }
+                    }
                 }
             }
         }

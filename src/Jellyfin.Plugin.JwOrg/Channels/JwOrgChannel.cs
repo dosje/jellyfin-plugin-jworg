@@ -4,6 +4,7 @@ using MediaBrowser.Controller.Channels;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Channels;
 using MediaBrowser.Model.Drawing;
+using MediaBrowser.Model.Dto;
 using MediaBrowser.Model.Entities;
 using Microsoft.Extensions.Logging;
 
@@ -12,7 +13,7 @@ namespace Jellyfin.Plugin.JwOrg.Channels;
 /// <summary>
 /// Jellyfin Channel implementation for public JW.ORG video content.
 /// </summary>
-public sealed class JwOrgChannel : IChannel
+public sealed class JwOrgChannel : IChannel, IRequiresMediaInfoCallback
 {
     private readonly IJwOrgClient _client;
     private readonly IJwOrgItemMapper _mapper;
@@ -38,7 +39,7 @@ public sealed class JwOrgChannel : IChannel
     public string Description => "Browse and stream public JW.ORG videos.";
 
     /// <inheritdoc />
-    public string DataVersion => "1";
+    public string DataVersion => "2";
 
     /// <inheritdoc />
     public string HomePageUrl => "https://www.jw.org/";
@@ -141,5 +142,37 @@ public sealed class JwOrgChannel : IChannel
             _logger.LogError(ex, "Failed to fetch channel items for folder {FolderId}", query.FolderId);
             throw;
         }
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<MediaSourceInfo>> GetChannelItemMediaInfo(string id, CancellationToken cancellationToken)
+    {
+        var parsed = ParseStableItemId(id);
+        if (parsed is null)
+        {
+            _logger.LogWarning("Cannot parse channel item id for media info: {Id}", id);
+            return [];
+        }
+
+        var configuration = Plugin.Instance?.Configuration ?? new PluginConfiguration();
+        var mediaItem = await _client.GetMediaItemAsync(parsed.Value.LanguageCode, parsed.Value.Key, configuration, cancellationToken).ConfigureAwait(false);
+        if (mediaItem is null)
+        {
+            _logger.LogWarning("Media item not found for id {Id}", id);
+            return [];
+        }
+
+        return _mapper.MapMediaSources(mediaItem, configuration);
+    }
+
+    private static (string LanguageCode, string Key)? ParseStableItemId(string id)
+    {
+        // Format: jworg:{LANG}:{key}
+        const string prefix = "jworg:";
+        if (!id.StartsWith(prefix, StringComparison.Ordinal)) return null;
+        var rest = id[prefix.Length..];
+        var colon = rest.IndexOf(':', StringComparison.Ordinal);
+        if (colon < 0) return null;
+        return (rest[..colon], rest[(colon + 1)..]);
     }
 }

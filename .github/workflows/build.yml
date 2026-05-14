@@ -105,8 +105,9 @@ jobs:
 
       - name: Restore & Build
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
           dotnet restore Jellyfin.Plugin.JwOrg.sln
-          dotnet build Jellyfin.Plugin.JwOrg.sln --configuration Release --no-restore
+          dotnet build Jellyfin.Plugin.JwOrg.sln --configuration Release --no-restore -p:Version="${VERSION}"
 
       - name: Publish
         run: |
@@ -163,8 +164,9 @@ jobs:
 
       - name: Restore & Build
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
           dotnet restore Jellyfin.Plugin.JwOrg.sln
-          dotnet build Jellyfin.Plugin.JwOrg.sln --configuration Release --no-restore
+          dotnet build Jellyfin.Plugin.JwOrg.sln --configuration Release --no-restore -p:Version="${VERSION}"
 
       - name: Publish
         run: |
