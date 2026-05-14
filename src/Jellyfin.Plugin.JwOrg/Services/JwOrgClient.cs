@@ -183,13 +183,14 @@ public sealed class JwOrgClient : IJwOrgClient
     {
         return new JwOrgMediaItem(
             languageCode,
-            ReadString(element, "key") ?? ReadString(element, "naturalKey") ?? string.Empty,
+            ReadString(element, "key") ?? ReadString(element, "languageAgnosticNaturalKey") ?? ReadString(element, "naturalKey") ?? string.Empty,
             ReadString(element, "title") ?? ReadString(element, "name") ?? "Untitled",
             ReadString(element, "description"),
             ReadImageUrl(element),
             ReadDate(element, "firstPublished") ?? ReadDate(element, "published"),
             ReadDuration(element),
-            ReadFiles(element));
+            ReadFiles(element),
+            ReadString(element, "type") ?? "video");
     }
 
     private static IReadOnlyList<JwOrgMediaFile> ReadFiles(JsonElement element)

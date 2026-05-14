@@ -39,7 +39,7 @@ public sealed class JwOrgChannel : IChannel, IRequiresMediaInfoCallback
     public string Description => "Browse and stream public JW.ORG videos.";
 
     /// <inheritdoc />
-    public string DataVersion => "3";
+    public string DataVersion => "4";
 
     /// <inheritdoc />
     public string HomePageUrl => "https://www.jw.org/";
@@ -52,8 +52,8 @@ public sealed class JwOrgChannel : IChannel, IRequiresMediaInfoCallback
     {
         return new InternalChannelFeatures
         {
-            MediaTypes = [ChannelMediaType.Video],
-            ContentTypes = [ChannelMediaContentType.Clip],
+            MediaTypes = [ChannelMediaType.Video, ChannelMediaType.Audio],
+            ContentTypes = [ChannelMediaContentType.Clip, ChannelMediaContentType.Song],
             MaxPageSize = 100,
             SupportsContentDownloading = false,
             AutoRefreshLevels = 2,

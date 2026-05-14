@@ -89,19 +89,20 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
     /// <inheritdoc />
     public IReadOnlyList<MediaSourceInfo> MapMediaSources(JwOrgMediaItem mediaItem, Configuration.PluginConfiguration configuration)
     {
-        var selectedFile = SelectFile(mediaItem.Files, configuration.MaxVideoHeight);
+        var isAudio = IsAudioItem(mediaItem);
+        var selectedFile = SelectFile(mediaItem.Files, isAudio, configuration.MaxVideoHeight);
         if (selectedFile is null)
         {
             return [];
         }
 
-        return [BuildMediaSource(mediaItem, selectedFile)];
+        return [BuildMediaSource(mediaItem, selectedFile, isAudio)];
     }
 
     private static ChannelItemInfo? MapMediaItem(JwOrgMediaItem mediaItem, Configuration.PluginConfiguration configuration)
     {
-        // Verify at least one playable file exists — skip items with no valid source
-        if (SelectFile(mediaItem.Files, configuration.MaxVideoHeight) is null)
+        var isAudio = IsAudioItem(mediaItem);
+        if (SelectFile(mediaItem.Files, isAudio, configuration.MaxVideoHeight) is null)
         {
             return null;
         }
@@ -116,8 +117,8 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
             Overview = mediaItem.Description,
             ImageUrl = mediaItem.ImageUrl,
             Type = ChannelItemType.Media,
-            MediaType = ChannelMediaType.Video,
-            ContentType = ChannelMediaContentType.Clip,
+            MediaType = isAudio ? ChannelMediaType.Audio : ChannelMediaType.Video,
+            ContentType = isAudio ? ChannelMediaContentType.Song : ChannelMediaContentType.Clip,
             RunTimeTicks = durationTicks,
             PremiereDate = mediaItem.PublishedAt?.UtcDateTime,
             DateCreated = mediaItem.PublishedAt?.UtcDateTime,
@@ -132,13 +133,21 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
         };
     }
 
-    private static MediaSourceInfo BuildMediaSource(JwOrgMediaItem mediaItem, JwOrgMediaFile selectedFile)
+    private static MediaSourceInfo BuildMediaSource(JwOrgMediaItem mediaItem, JwOrgMediaFile selectedFile, bool isAudio)
     {
         var durationTicks = mediaItem.Duration is { Ticks: > 0 } duration ? duration.Ticks : (long?)null;
+
+        MediaStream[] streams = isAudio
+            ? [new MediaStream { Type = MediaStreamType.Audio, Codec = "mp3", Index = 0, IsDefault = true }]
+            : [
+                new MediaStream { Type = MediaStreamType.Video, Codec = "h264", Index = 0, IsDefault = true },
+                new MediaStream { Type = MediaStreamType.Audio, Codec = "aac",  Index = 1, IsDefault = true }
+              ];
+
         return new MediaSourceInfo
         {
             Id = StableItemId(mediaItem.LanguageCode, mediaItem.Key),
-            Name = selectedFile.Label ?? selectedFile.Height?.ToString(CultureInfo.InvariantCulture) ?? "MP4",
+            Name = selectedFile.Label ?? (isAudio ? "MP3" : selectedFile.Height?.ToString(CultureInfo.InvariantCulture) ?? "MP4"),
             Path = selectedFile.Url,
             Protocol = MediaProtocol.Http,
             Type = MediaSourceType.Default,
@@ -151,26 +160,23 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
             Size = selectedFile.SizeBytes,
             Bitrate = selectedFile.Bitrate,
             ETag = mediaItem.Key,
-            MediaStreams =
-            [
-                new MediaStream { Type = MediaStreamType.Video, Codec = "h264", Index = 0, IsDefault = true },
-                new MediaStream { Type = MediaStreamType.Audio, Codec = "aac",  Index = 1, IsDefault = true }
-            ]
+            MediaStreams = streams
         };
     }
 
-    private static JwOrgMediaFile? SelectFile(IReadOnlyList<JwOrgMediaFile> files, int? maxVideoHeight)
+    private static JwOrgMediaFile? SelectFile(IReadOnlyList<JwOrgMediaFile> files, bool isAudio, int? maxVideoHeight)
     {
-        var candidates = files
+        return files
             .Where(file => Uri.TryCreate(file.Url, UriKind.Absolute, out _))
-            .Where(file => IsMp4(file))
-            .Where(file => maxVideoHeight is null || file.Height is null || file.Height <= maxVideoHeight)
+            .Where(file => isAudio ? IsAudioFile(file) : IsMp4(file))
+            .Where(file => isAudio || maxVideoHeight is null || file.Height is null || file.Height <= maxVideoHeight)
             .OrderByDescending(file => file.Height ?? 0)
             .ThenByDescending(file => file.Bitrate ?? 0)
-            .ToArray();
-
-        return candidates.FirstOrDefault();
+            .FirstOrDefault();
     }
+
+    private static bool IsAudioItem(JwOrgMediaItem mediaItem)
+        => string.Equals(mediaItem.MediaType, "audio", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsMp4(JwOrgMediaFile file)
     {
@@ -179,20 +185,16 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
             || string.Equals(file.Format, "video/mp4", StringComparison.OrdinalIgnoreCase);
     }
 
+    private static bool IsAudioFile(JwOrgMediaFile file)
+    {
+        return file.Url.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase)
+            || file.Url.EndsWith(".m4a", StringComparison.OrdinalIgnoreCase)
+            || (file.Format?.StartsWith("audio/", StringComparison.OrdinalIgnoreCase) ?? false);
+    }
+
     private static string StableItemId(string languageCode, string key)
     {
         return $"jworg:{languageCode.ToUpperInvariant()}:{key}";
-    }
-
-    private static IReadOnlyList<string> NormalizeLanguageCodes(IEnumerable<string> languageCodes)
-    {
-        var normalized = languageCodes
-            .Select(languageCode => languageCode.Trim().ToUpperInvariant())
-            .Where(languageCode => !string.IsNullOrWhiteSpace(languageCode))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-
-        return normalized.Length == 0 ? ["E"] : normalized;
     }
 
     private static string DeriveContainer(JwOrgMediaFile file)
@@ -200,20 +202,9 @@ public sealed class JwOrgItemMapper : IJwOrgItemMapper
         if (!string.IsNullOrEmpty(file.Format))
         {
             var fmt = file.Format.ToLowerInvariant();
-            if (fmt.Contains("mp4", StringComparison.Ordinal))
-            {
-                return "mp4";
-            }
-
-            if (fmt.Contains("webm", StringComparison.Ordinal))
-            {
-                return "webm";
-            }
-
-            if (fmt.Contains("ts", StringComparison.Ordinal))
-            {
-                return "ts";
-            }
+            if (fmt.Contains("mp4", StringComparison.Ordinal)) return "mp4";
+            if (fmt.Contains("webm", StringComparison.Ordinal)) return "webm";
+            if (fmt.Contains("ts", StringComparison.Ordinal)) return "ts";
         }
 
         var ext = Path.GetExtension(file.Url).TrimStart('.').ToLowerInvariant();

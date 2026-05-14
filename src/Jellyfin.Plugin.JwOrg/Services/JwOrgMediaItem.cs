@@ -1,7 +1,7 @@
 namespace Jellyfin.Plugin.JwOrg.Services;
 
 /// <summary>
-/// JW.ORG video media data.
+/// JW.ORG media item (video or audio).
 /// </summary>
 public sealed record JwOrgMediaItem(
     string LanguageCode,
@@ -11,4 +11,5 @@ public sealed record JwOrgMediaItem(
     string? ImageUrl,
     DateTimeOffset? PublishedAt,
     TimeSpan? Duration,
-    IReadOnlyList<JwOrgMediaFile> Files);
+    IReadOnlyList<JwOrgMediaFile> Files,
+    string MediaType = "video");
