@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Jellyfin Forum
+    url: https://forum.jellyfin.org
+    about: General Jellyfin help and questions
