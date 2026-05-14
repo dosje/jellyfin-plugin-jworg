@@ -8,6 +8,14 @@
     "category": "Channels",
     "versions": [
       {
+        "version": "0.1.7.0",
+        "changelog": "Pull --rebase before pushing the manifest commit back to main so the\nstable release job doesn't fail when the branch has moved ahead during\nthe build.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.1.7/Jellyfin.Plugin.JwOrg_0.1.7.zip",
+        "checksum": "fd3719aa2fbca4d41a283f1d1512b4cb",
+        "timestamp": "2026-05-14T12:11:12Z"
+      },
+      {
         "version": "0.1.6.0",
         "changelog": "- Use languageAgnosticNaturalKey as the media item key: the media-items\n  API requires pub-jwb-137_1_VIDEO not pub-jwb-137_E_1_VIDEO (with the\n  embedded language code) \u2014 the language-specific naturalKey always\n  returned an empty response, breaking all playback via the callback\n- Add audio/MP3 support: new IsAudioFile() filter, audio MediaStream,\n  mp3 container, ChannelMediaType.Audio / ChannelMediaContentType.Song\n  so the Audio category and its subcategories play correctly\n- Add MediaType field to JwOrgMediaItem (default: \"video\") read from\n  the API \"type\" field to distinguish audio from video items\n- Declare Audio and Song in InternalChannelFeatures\n- DataVersion 4 to force re-index after key format change",
         "targetAbi": "10.11.0.0",
