@@ -64,4 +64,4 @@ Bug reports and pull requests are welcome. Please open an issue first for larger
 
 ## License
 
-MIT
+GPL-3.0 — see [LICENSE](LICENSE) for details.
