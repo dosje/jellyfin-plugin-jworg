@@ -6,7 +6,7 @@
     "overview": "Adds a JW.ORG Channel to Jellyfin. The plugin browses public JW.ORG video categories and streams selected MP4 files directly from JW CDN URLs without downloading media locally.",
     "owner": "dosje",
     "category": "Channels",
-    "imageUrl": "https://raw.githubusercontent.com/dosje/jellyfin-plugin-jworg/main/src/Jellyfin.Plugin.JwOrg/Images/logo.png",
+    "imageUrl": "https://raw.githubusercontent.com/dosje/jellyfin-plugin-jworg/main/src/Jellyfin.Plugin.JwOrg/Images/thumbnail.png",
     "versions": [
       {
         "version": "0.2.0.0",

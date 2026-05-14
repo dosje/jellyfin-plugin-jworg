@@ -21,5 +21,6 @@
     <EmbeddedResource Include="thumb.png" />
     <EmbeddedResource Include="Images\logo.png" />
     <EmbeddedResource Include="Images\banner.png" />
+    <EmbeddedResource Include="Images\thumbnail.png" />
   </ItemGroup>
 </Project>
