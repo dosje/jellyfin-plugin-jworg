@@ -8,6 +8,14 @@
     "category": "Channels",
     "versions": [
       {
+        "version": "0.1.4.0",
+        "changelog": "- Pipeline now passes -p:Version from the git tag so the DLL assembly\n  version matches the release (e.g. 0.1.4.0 instead of always 0.1.0.0)\n- Implement IRequiresMediaInfoCallback so Jellyfin fetches live media\n  sources at play time instead of using stale cached database values\n- Fix ReadImageUrl to resolve nested size-variant objects (lg/md/sm)\n  from the JW.ORG images API \u2014 thumbnails were always returning null\n- Bump DataVersion to 2 to force re-index of all channel items so\n  fixed metadata and images are picked up immediately after upgrade\n- Add Studios and OfficialRating fields to video detail pages",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.1.4/Jellyfin.Plugin.JwOrg_0.1.4.zip",
+        "checksum": "d150dfb335c00e06ad0d29b664274400",
+        "timestamp": "2026-05-14T09:47:53Z"
+      },
+      {
         "version": "0.1.3.0",
         "changelog": "- Add MediaStreams (h264/aac) to MediaSourceInfo so Jellyfin can\n  approve direct play on all clients including iOS\n- Remove non-MP4 fallback in SelectFile so only playable formats\n  are offered\n- Sort media items by date descending (newest first) within categories\n- Declare DefaultSortFields so clients can toggle sort order\n- Language folders now show vernacular name (e.g. Deutsch, English)\n  instead of raw code (D, E), fetched from JW.ORG API and cached 24h\n- Skip language folder entirely when only one language is configured,\n  opening directly to categories",
         "targetAbi": "10.11.0.0",
