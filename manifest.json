@@ -8,6 +8,14 @@
     "category": "Channels",
     "versions": [
       {
+        "version": "0.1.3.0",
+        "changelog": "- Add MediaStreams (h264/aac) to MediaSourceInfo so Jellyfin can\n  approve direct play on all clients including iOS\n- Remove non-MP4 fallback in SelectFile so only playable formats\n  are offered\n- Sort media items by date descending (newest first) within categories\n- Declare DefaultSortFields so clients can toggle sort order\n- Language folders now show vernacular name (e.g. Deutsch, English)\n  instead of raw code (D, E), fetched from JW.ORG API and cached 24h\n- Skip language folder entirely when only one language is configured,\n  opening directly to categories",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.1.3/Jellyfin.Plugin.JwOrg_0.1.3.zip",
+        "checksum": "a8abf0b4149b18a3495e6a96c9464ed3",
+        "timestamp": "2026-05-14T09:09:45Z"
+      },
+      {
         "version": "0.1.2.0",
         "changelog": "Microsoft.Extensions.Http was being bundled in the plugin zip,\nconflicting with the server's own copies and breaking type identity\nfor IServiceCollection. Mark it PrivateAssets=\"all\" so it is\ncompile-time only and the server-provided assembly is used at runtime.",
         "targetAbi": "10.11.0.0",
