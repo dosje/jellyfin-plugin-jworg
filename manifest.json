@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/dosje/jellyfin-plugin-jworg/main/src/Jellyfin.Plugin.JwOrg/Images/thumbnail.png",
     "versions": [
       {
+        "version": "0.2.4.0",
+        "changelog": "v0.2.3 restructured the language root but forgot to bump DataVersion,\nso Jellyfin kept serving cached items from the old layout.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.2.4/Jellyfin.Plugin.JwOrg_0.2.4.zip",
+        "checksum": "7a83543b1cb1a39354c55d1d76de31ed",
+        "timestamp": "2026-05-15T04:59:33Z"
+      },
+      {
         "version": "0.2.3.0",
         "changelog": "When a user navigates into a language (or the root with a single language),\ninstead of showing the 6 top-level API categories (Audio, Featured\u00d73,\nLatest Videos, Video Categories), now shows:\n  1. Audio\n  2. Latest Videos (Neueste Videos)\n  3-16. All 14 VideoOnDemand sub-categories (Die Bibel, Familie, Musik, \u2026)\nFeatured / Empfehlungen folders are hidden as they have no image and\nadd no value over the direct category listing.\nAudio and VideoOnDemand sub-categories are fetched in parallel.\nDataVersion bumped to 6 to force a full re-index.",
         "targetAbi": "10.11.0.0",
