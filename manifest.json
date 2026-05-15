@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/dosje/jellyfin-plugin-jworg/main/src/Jellyfin.Plugin.JwOrg/Images/thumbnail.png",
     "versions": [
       {
+        "version": "0.2.5.0",
+        "changelog": "The rebase approach failed when manifest.json conflicted with a\nconcurrent CI manifest commit. Instead: save the generated manifest,\nhard-reset to the latest origin/main, restore it, then push once.\nNo rebase = no conflict.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.2.5/Jellyfin.Plugin.JwOrg_0.2.5.zip",
+        "checksum": "0a3055fefdfe863bd6c2c45b72b26dbc",
+        "timestamp": "2026-05-15T21:44:19Z"
+      },
+      {
         "version": "0.2.4.0",
         "changelog": "v0.2.3 restructured the language root but forgot to bump DataVersion,\nso Jellyfin kept serving cached items from the old layout.",
         "targetAbi": "10.11.0.0",
