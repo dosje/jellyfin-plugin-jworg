@@ -98,14 +98,7 @@ public sealed class JwOrgChannel : IChannel, IRequiresMediaInfoCallback
                 var codes = configuration.LanguageCodes;
                 if (codes.Length == 1)
                 {
-                    var singleCode = codes[0];
-                    var topCategories = await _client.GetTopCategoriesAsync(singleCode, configuration, cancellationToken).ConfigureAwait(false);
-                    if (topCategories.Count == 0)
-                    {
-                        _logger.LogWarning("No top categories returned for language {Language}", singleCode);
-                    }
-
-                    return _mapper.MapCategories(topCategories);
+                    return await BuildLanguageRootAsync(codes[0], configuration, cancellationToken).ConfigureAwait(false);
                 }
 
                 var nametasks = codes.Select(async code =>
@@ -116,13 +109,7 @@ public sealed class JwOrgChannel : IChannel, IRequiresMediaInfoCallback
 
             if (folder.Kind == JwOrgFolderKind.LanguageRoot)
             {
-                var topCategories = await _client.GetTopCategoriesAsync(folder.LanguageCode, configuration, cancellationToken).ConfigureAwait(false);
-                if (topCategories.Count == 0)
-                {
-                    _logger.LogWarning("No top categories returned for language {Language}", folder.LanguageCode);
-                }
-
-                return _mapper.MapCategories(topCategories);
+                return await BuildLanguageRootAsync(folder.LanguageCode, configuration, cancellationToken).ConfigureAwait(false);
             }
 
             var category = await _client
@@ -163,6 +150,35 @@ public sealed class JwOrgChannel : IChannel, IRequiresMediaInfoCallback
         }
 
         return _mapper.MapMediaSources(mediaItem, configuration);
+    }
+
+    private static readonly HashSet<string> _topLevelKeepKeys =
+        new(StringComparer.OrdinalIgnoreCase) { "Audio", "LatestVideos" };
+
+    private async Task<ChannelItemResult> BuildLanguageRootAsync(
+        string languageCode, Configuration.PluginConfiguration configuration, CancellationToken cancellationToken)
+    {
+        // Fetch top categories and Video-on-demand sub-categories in parallel.
+        var topTask = _client.GetTopCategoriesAsync(languageCode, configuration, cancellationToken);
+        var vodTask  = _client.GetCategoryAsync(languageCode, "VideoOnDemand", configuration, 0, null, cancellationToken);
+
+        await Task.WhenAll(topTask, vodTask).ConfigureAwait(false);
+
+        var top  = topTask.Result;
+        var vod  = vodTask.Result;
+
+        // Audio + LatestVideos (in API order) then all VideoOnDemand sub-categories.
+        var combined = top
+            .Where(c => _topLevelKeepKeys.Contains(c.Key))
+            .Concat(vod.Subcategories.Where(c => !string.IsNullOrWhiteSpace(c.Key)))
+            .ToList();
+
+        if (combined.Count == 0)
+        {
+            _logger.LogWarning("No categories resolved for language {Language}", languageCode);
+        }
+
+        return _mapper.MapCategories(combined);
     }
 
     private static (string LanguageCode, string Key)? ParseStableItemId(string id)
