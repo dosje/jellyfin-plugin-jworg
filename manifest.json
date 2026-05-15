@@ -9,6 +9,14 @@
     "imageUrl": "https://raw.githubusercontent.com/dosje/jellyfin-plugin-jworg/main/src/Jellyfin.Plugin.JwOrg/Images/thumbnail.png",
     "versions": [
       {
+        "version": "0.2.3.0",
+        "changelog": "When a user navigates into a language (or the root with a single language),\ninstead of showing the 6 top-level API categories (Audio, Featured\u00d73,\nLatest Videos, Video Categories), now shows:\n  1. Audio\n  2. Latest Videos (Neueste Videos)\n  3-16. All 14 VideoOnDemand sub-categories (Die Bibel, Familie, Musik, \u2026)\nFeatured / Empfehlungen folders are hidden as they have no image and\nadd no value over the direct category listing.\nAudio and VideoOnDemand sub-categories are fetched in parallel.\nDataVersion bumped to 6 to force a full re-index.",
+        "targetAbi": "10.11.0.0",
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.2.3/Jellyfin.Plugin.JwOrg_0.2.3.zip",
+        "checksum": "242e14694341d9214b6cc2e31a72a2a1",
+        "timestamp": "2026-05-15T04:41:03Z"
+      },
+      {
         "version": "0.2.2.0",
         "changelog": "Declaring ImageType.Backdrop caused Jellyfin to use the channel banner\nas a fallback tile image for categories/folders that have no image from\nthe JW.ORG API (Featured, language folders). It was cropped to a square\nand looked broken. Removing Backdrop lets Jellyfin show its own neutral\nplaceholder for imageless items instead.",
         "targetAbi": "10.11.0.0",
