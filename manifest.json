@@ -9,12 +9,12 @@
     "imageUrl": "https://raw.githubusercontent.com/dosje/jellyfin-plugin-jworg/main/src/Jellyfin.Plugin.JwOrg/Images/thumbnail.png",
     "versions": [
       {
-        "version": "0.2.5.0",
-        "changelog": "The rebase approach failed when manifest.json conflicted with a\nconcurrent CI manifest commit. Instead: save the generated manifest,\nhard-reset to the latest origin/main, restore it, then push once.\nNo rebase = no conflict.",
+        "version": "0.2.6.0",
+        "changelog": "Two root causes found and fixed:\n1. HydrateMediaAsync only called GetMediaItemAsync when Files.Count == 0.\n   Items that arrived from the category listing with files but without image\n   data were never re-fetched, so the null image propagated to Jellyfin.\n   Now also fetches the full detail record when ImageUrl is null.\n2. ExtractImageUrl silently returned null for JSON arrays. Older JW.ORG API\n   responses can return thumbnail as [{url, width, height}, ...]. Added an\n   array branch that picks the first url property.\nDataVersion bumped to 7 to force Jellyfin to re-index all channel items\nand pick up correct image URLs. Users should also clear the image cache\nvia Admin \u2192 Dashboard \u2192 Troubleshooting \u2192 Clean image cache.",
         "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.2.5/Jellyfin.Plugin.JwOrg_0.2.5.zip",
-        "checksum": "0a3055fefdfe863bd6c2c45b72b26dbc",
-        "timestamp": "2026-05-15T21:44:19Z"
+        "sourceUrl": "https://github.com/dosje/jellyfin-plugin-jworg/releases/download/v0.2.6/Jellyfin.Plugin.JwOrg_0.2.6.zip",
+        "checksum": "14086bd833d7cbc3badbefa5d4ffcead",
+        "timestamp": "2026-05-16T10:45:59Z"
       },
       {
         "version": "0.2.4.0",
