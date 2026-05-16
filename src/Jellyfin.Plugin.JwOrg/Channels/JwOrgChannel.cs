@@ -39,7 +39,7 @@ public sealed class JwOrgChannel : IChannel, IRequiresMediaInfoCallback
     public string Description => "Browse and stream public JW.ORG videos via JW Broadcasting.";
 
     /// <inheritdoc />
-    public string DataVersion => "6";
+    public string DataVersion => "7";
 
     /// <inheritdoc />
     public string HomePageUrl => "https://www.jw.org/";
