@@ -132,10 +132,18 @@ public sealed class JwOrgClient : IJwOrgClient
     {
         var tasks = media.Select(async item =>
         {
-            var hydrated = item.Files.Count == 0
-                ? await GetMediaItemAsync(languageCode, item.Key, configuration, cancellationToken).ConfigureAwait(false)
-                : item;
-            return hydrated is not null && hydrated.Files.Count > 0 ? hydrated : null;
+            JwOrgMediaItem? hydrated;
+            if (item.Files.Count == 0 || item.ImageUrl is null)
+            {
+                var fullItem = await GetMediaItemAsync(languageCode, item.Key, configuration, cancellationToken).ConfigureAwait(false);
+                hydrated = fullItem ?? item;
+            }
+            else
+            {
+                hydrated = item;
+            }
+
+            return hydrated.Files.Count > 0 ? hydrated : null;
         });
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -283,6 +291,14 @@ public sealed class JwOrgClient : IJwOrgClient
         // Direct string URL
         if (image.ValueKind == JsonValueKind.String)
             return image.GetString();
+
+        // Array of size objects: [{url, width, height}, ...]
+        if (image.ValueKind == JsonValueKind.Array)
+        {
+            return image.EnumerateArray()
+                .Select(el => ReadString(el, "url"))
+                .FirstOrDefault(u => !string.IsNullOrWhiteSpace(u));
+        }
 
         if (image.ValueKind != JsonValueKind.Object)
             return null;
